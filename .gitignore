@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Output files
+outputs/
+*.csv
+*.parquet
+*.json
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Analysis scripts (temporary)
+analyze_diabetes.py
+validate_output.py
+deep_validation.py
+diabetes_analysis_v3.py
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration overrides
+configs/*_prod.yaml
+configs/*_local.yaml
+.env
+.env.local

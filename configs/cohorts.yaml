@@ -1,0 +1,308 @@
+# OPTIMIZED COHORTS YAML - Using YAML anchors, aliases, and references
+# NOTE: YAML schema validation will be performed in Python before running the pipeline.
+# Each cohort must have at least an 'inclusion' section. 'exclusion' and 'tags' are optional.
+
+# =============================================================================
+# COMMON ANCHORS - Reusable configurations
+# =============================================================================
+
+# Standard inclusion parameters
+standard_inclusion: &standard_inclusion
+  min_claims: 2
+  min_days_between_claims: 30
+  within_months: 12
+  claim_types: ["medical"]
+  index_date: "second_claim"
+
+# Conservative inclusion (2 claims, 30 days apart)
+conservative_inclusion: &conservative_inclusion
+  min_claims: 2
+  min_days_between_claims: 30
+  claim_types: ["medical"]
+  index_date: "second_claim"
+  allow_inpatient: true
+  lookback_months: 24
+
+# Sensitive inclusion (1 claim, with Rx support)
+sensitive_inclusion: &sensitive_inclusion
+  min_claims: 1
+  claim_types: ["medical"]
+  index_date: "first_claim"
+  allow_rx_support: true
+  rx_window_days: 180
+  lookback_months: 24
+
+# IBS-specific inclusion
+ibs_inclusion: &ibs_inclusion
+  min_claims: 2
+  min_days_between_claims: 30
+  within_months: 12
+  claim_types: ["medical"]
+  index_date: "first_qualifying"
+  symptom_codes: ["R10.", "R14."]
+  symptom_window_days: 180
+
+# Diabetes codes
+diabetes_codes: &diabetes_codes ["E08.*", "E09.*", "E10.*", "E11.*", "E13.*"]
+
+# Hypertension codes
+htn_codes: &htn_codes ["I10.*", "I11.*", "I12.*", "I13.*", "I15.*"]
+
+# CAD codes
+cad_codes: &cad_codes ["I20.*", "I21.*", "I22.*", "I23.*", "I24.*", "I25.*"]
+
+# Dyslipidemia codes
+dyslipidemia_codes: &dyslipidemia_codes ["E78.0", "E78.1", "E78.2", "E78.3", "E78.4", "E78.5"]
+
+# Common exclusions
+pregnancy_exclusion: &pregnancy_exclusion
+  pregnancy: ["O00.*", "O9A.*", "O24.4*"]
+
+cancer_exclusion: &cancer_exclusion
+  cancer: ["C*", "D*", "Z85.*"]
+
+# =============================================================================
+# COHORT DEFINITIONS
+# =============================================================================
+
+cohorts:
+  # =============================================================================
+  # IBS COHORTS
+  # =============================================================================
+  
+  IBS_General:
+    inclusion:
+      icd_codes: ["K58.*"]
+      min_claims: 2
+      min_days_between_claims: 30
+      look_back_enrollment: "12M"
+      look_ahead_enrollment: "12M"
+      claim_type: "medical"
+      date_range_years: 5
+    exclusion:
+      icd_exclusion: ["K50.*", "K51.*", "K90.0"]
+      look_back_exclusion: "12M"
+      same_day_exclusion_chapters: ["S", "T"]
+
+  IBS_D:
+    inclusion:
+      <<: *ibs_inclusion
+      icd_codes: ["K58.0"]
+      symptom_codes: ["R19.7", "R14.", "R10."]
+    exclusion:
+      subtypes: ["K58.1", "K58.2"]
+      subtype_window_days: 180
+      organic_gi: ["K50.", "K51.", "K90.0"]
+      organic_gi_window_days: 180
+
+  IBS_M:
+    inclusion:
+      <<: *ibs_inclusion
+      icd_codes: ["K58.2"]
+    exclusion:
+      organic_gi: ["K50.", "K51.", "K52.", "K90.0", "A09", "K52.9", "C16.9", "C18.9", "C20", "K22.0", "K31.84"]
+
+  IBS_U:
+    inclusion:
+      <<: *ibs_inclusion
+      icd_codes: ["K58.9"]
+    exclusion:
+      subtypes: ["K58.0", "K58.1", "K58.2"]
+      subtype_window_days: 180
+      organic_gi: ["K50.", "K51.", "K52.", "K90.0", "A09", "K52.9", "C16.9", "C18.9", "C20", "K22.0", "K31.84"]
+      organic_gi_window_days: 365
+
+  # =============================================================================
+  # DIABETES COHORTS
+  # =============================================================================
+
+  PreDiabetes:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: ["R73.01", "R73.02", "R73.03", "R73.09", "R73.9"]
+      lookback_no_diabetes: 12
+      lookahead_no_diabetes: 6
+    exclusion:
+      diabetes_codes: *diabetes_codes
+      gdm_codes: ["O24.4*"]
+
+  Diabetes_General:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: *diabetes_codes
+      min_claims: 2
+      min_days_between_claims: 30
+      within_months: 12
+      claim_types: ["medical"]
+      index_date: "second_claim"
+    exclusion:
+      gdm_codes: ["O24.4*"]
+      pregnancy_codes: ["O00.*", "O9A.*"]
+
+  GDM:
+    inclusion:
+      icd_codes: ["O24.4*"]
+      min_claims: 2
+      min_days_between_claims: 30
+      claim_types: ["medical"]
+      index_date: "first_gdm_claim"
+      pregnancy_window: true
+      lookback_no_diabetes: 12
+    exclusion:
+      pre_existing_diabetes: *diabetes_codes
+      pre_existing_diabetes: ["O24.0*", "O24.1*"]
+      o9981_code: ["O99.81"]
+
+  # =============================================================================
+  # METABOLIC COHORTS
+  # =============================================================================
+
+  Metabolic_Syndrome:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: ["E88.81", "E88.810"]
+      # Broad: component-based
+      components:
+        obesity: ["E66.*", "Z68.3*", "Z68.4*"]
+        htn: *htn_codes
+        dyslipidemia: ["E78.*"]
+        hyperglycemia: ["R73.*", "E11.*", "E10.*"]
+        low_hdl: ["E78.6"]
+      min_components: 3
+      component_window_days: 365
+    exclusion:
+      cushing: ["E24.*"]
+      t1dm: ["E10.*"]
+      <<: *pregnancy_exclusion
+      <<: *cancer_exclusion
+      hiv: ["B20.*", "B21.*", "B22.*", "B23.*", "B24"]
+
+  # =============================================================================
+  # WEIGHT COHORTS
+  # =============================================================================
+
+  Normal_Weight:
+    inclusion:
+      icd_codes: ["Z68.20", "Z68.21", "Z68.22", "Z68.23", "Z68.24"]
+      min_claims: 1
+      min_days_between_claims: 30
+      claim_types: ["medical"]
+      index_date: "first_claim"
+    exclusion:
+      overweight: ["E66.3", "Z68.25", "Z68.26", "Z68.27", "Z68.28", "Z68.29"]
+      obesity: ["E66.*", "Z68.3*", "Z68.4*"]
+      underweight: ["Z68.1*"]
+      <<: *pregnancy_exclusion
+      eating_disorder: ["F50.*"]
+
+  Overweight:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: ["E66.3", "Z68.25", "Z68.26", "Z68.27", "Z68.28", "Z68.29"]
+    exclusion:
+      obesity: ["E66.*", "Z68.3*", "Z68.4*"]
+      <<: *pregnancy_exclusion
+
+  Obesity:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: ["E66.*", "Z68.3*", "Z68.4*"]
+    exclusion:
+      cushing: ["E24.*"]
+      hypothyroid: ["E03.*"]
+      acromegaly: ["E22.0"]
+      <<: *pregnancy_exclusion
+      <<: *cancer_exclusion
+
+  # =============================================================================
+  # WOMEN'S HEALTH
+  # =============================================================================
+
+  PCOS:
+    inclusion:
+      <<: *standard_inclusion
+      icd_codes: ["E28.2"]
+    exclusion:
+      cah: ["E25.0"]
+      cushing: ["E24.*"]
+      androgen_tumor: ["C56.*", "C74.*", "D44.6"]
+      hyperprolactinemia: ["E22.1"]
+      menopause: ["N95.*", "E28.3"]
+      <<: *pregnancy_exclusion
+
+  # =============================================================================
+  # CARDIOVASCULAR COHORTS
+  # =============================================================================
+
+  HTN_Conservative:
+    inclusion:
+      <<: *conservative_inclusion
+      icd_codes: ["I10", "I11.*", "I12.*", "I13.*"]
+      primary_only: true
+    exclusion: {}
+    tags:
+      secondary_htn: ["I15.*"]
+      htn_complication: ["I11.*", "I12.*", "I13.*"]
+
+  HTN_Sensitive:
+    inclusion:
+      <<: *sensitive_inclusion
+      icd_codes: ["I10", "I11.*", "I12.*", "I13.*"]
+      rx_codes: ["antihypertensive"]
+    exclusion: {}
+    tags:
+      secondary_htn: ["I15.*"]
+      htn_complication: ["I11.*", "I12.*", "I13.*"]
+
+  Dyslipidemia_Conservative:
+    inclusion:
+      <<: *conservative_inclusion
+      icd_codes: *dyslipidemia_codes
+    exclusion: {}
+    tags:
+      familial_hyperchol: ["E78.1"]
+      mixed_dyslipidemia: ["E78.2"]
+      severe_triglyceridemia: ["E78.3"]
+
+  Dyslipidemia_Sensitive:
+    inclusion:
+      <<: *sensitive_inclusion
+      icd_codes: *dyslipidemia_codes
+      rx_codes: ["statin", "ezetimibe", "fibrate", "pcsk9i"]
+    exclusion: {}
+    tags:
+      familial_hyperchol: ["E78.1"]
+      mixed_dyslipidemia: ["E78.2"]
+      severe_triglyceridemia: ["E78.3"]
+
+  CAD_Conservative:
+    inclusion:
+      <<: *conservative_inclusion
+      icd_codes: *cad_codes
+      allow_procedure: true
+      procedure_codes: ["92960", "92961", "92962", "92963", "33510", "33511", "33512", "33513", "33514", "33515", "33516", "33517", "33518", "33519", "33520", "33521", "33522", "33523", "33524", "33525", "33526", "33527", "33528", "33529", "33530", "33531", "33532", "33533", "33534", "33535", "33536"]
+      allow_medication: true
+      medication_codes: ["ATORVASTATIN CALCIUM", "ROSUVASTATIN CALCIUM", "LISINOPRIL", "AMLODIPINE BESYLATE"]
+      require_both_procedure_and_medication: false
+      lookback_months: 36
+    exclusion: {}
+    tags:
+      history_of_mi: ["I21.*", "I22.*"]
+      unstable_angina: ["I20.0"]
+      cad_bypass: ["I25.7*"]
+
+  CAD_Sensitive:
+    inclusion:
+      <<: *sensitive_inclusion
+      icd_codes: *cad_codes
+      allow_procedure: true
+      procedure_codes: ["92960", "92961", "92962", "92963", "33510", "33511", "33512", "33513", "33514", "33515", "33516", "33517", "33518", "33519", "33520", "33521", "33522", "33523", "33524", "33525", "33526", "33527", "33528", "33529", "33530", "33531", "33532", "33533", "33534", "33535", "33536"]
+      allow_medication: true
+      medication_codes: ["ATORVASTATIN CALCIUM", "ROSUVASTATIN CALCIUM", "LISINOPRIL", "AMLODIPINE BESYLATE"]
+      require_both_procedure_and_medication: false
+      lookback_months: 36
+    exclusion: {}
+    tags:
+      history_of_mi: ["I21.*", "I22.*"]
+      unstable_angina: ["I20.0"]
+      cad_bypass: ["I25.7*"] 

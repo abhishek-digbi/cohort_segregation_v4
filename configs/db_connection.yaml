@@ -1,0 +1,9 @@
+# Database connection parameters
+duckdb:
+  database: "claims"
+  path: "/path/to/your/claims.db"
+
+s3:
+  access_key: "YOUR_AWS_ACCESS_KEY"
+  secret_key: "YOUR_AWS_SECRET_KEY"
+  region: "us-west-1"
