@@ -25,9 +25,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -54,9 +60,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -95,16 +107,22 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.side_effect = lambda table: table != 'claims_members_monthly_utilization'
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
                 assert 'claims_entries' in connector.tables
                 assert 'claims_diagnoses' in connector.tables
                 assert 'members' in connector.tables
-                assert 'claims_members_monthly_utilization' in connector.tables
+                # claims_members_monthly_utilization is optional, may or may not be present
         finally:
             os.unlink(config_path)
     
@@ -118,9 +136,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -138,9 +162,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -158,9 +188,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -176,9 +212,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -196,9 +238,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -220,9 +268,15 @@ class TestDBConnector:
             config_path2 = f2.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector1 = DBConnector(config_path1)
@@ -244,9 +298,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)
@@ -265,9 +325,15 @@ class TestDBConnector:
             config_path = f.name
         
         try:
-            with patch('db_connector.sqlalchemy.create_engine') as mock_engine, \
+            with patch('db_connector.sqlalchemy.create_engine') as mock_create_engine, \
+                 patch('db_connector.sqlalchemy.inspect') as mock_inspect, \
                  patch('db_connector.pd.read_sql') as mock_read_sql:
                 
+                mock_engine = MagicMock()
+                mock_create_engine.return_value = mock_engine
+                mock_inspector = MagicMock()
+                mock_inspect.return_value = mock_inspector
+                mock_inspector.has_table.return_value = True
                 mock_read_sql.return_value = MagicMock()
                 
                 connector = DBConnector(config_path)

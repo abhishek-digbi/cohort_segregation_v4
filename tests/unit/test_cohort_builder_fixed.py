@@ -47,7 +47,8 @@ class TestCohortBuilderConstants:
         assert 'claims_entries' in EXPECTED_DB_SCHEMA
         assert 'claims_diagnoses' in EXPECTED_DB_SCHEMA
         assert 'members' in EXPECTED_DB_SCHEMA
-        assert 'claims_members_monthly_utilization' in EXPECTED_DB_SCHEMA
+        # claims_members_monthly_utilization is now optional, not required
+        assert 'claims_members_monthly_utilization' not in EXPECTED_DB_SCHEMA
         
         # Test specific columns
         assert 'claim_entry_id' in EXPECTED_DB_SCHEMA['claims_entries']

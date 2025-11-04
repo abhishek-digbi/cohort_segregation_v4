@@ -782,9 +782,22 @@ class CohortBuilder:
         for code in codes:
             if '*' in code or '.' in code:
                 code_val = code.replace('*', '%')
-                conditions.append(f"{prefix}icd_code LIKE '{code_val}'")
+                # Handle both formats: with period (K58.%) and without period (K58%)
+                # This ensures compatibility with databases that store ICD codes with or without periods
+                if '.' in code_val:
+                    # Pattern has period - match both formats
+                    period_pattern = code_val  # e.g., "K58.%"
+                    no_period_pattern = code_val.replace('.', '')  # e.g., "K58%"
+                    conditions.append(f"({prefix}icd_code LIKE '{period_pattern}' OR {prefix}icd_code LIKE '{no_period_pattern}')")
+                else:
+                    conditions.append(f"{prefix}icd_code LIKE '{code_val}'")
             else:
-                conditions.append(f"{prefix}icd_code = '{code}'")
+                # Exact match - try both formats for codes that might have periods
+                if '.' in code:
+                    no_period_code = code.replace('.', '')
+                    conditions.append(f"({prefix}icd_code = '{code}' OR {prefix}icd_code = '{no_period_code}')")
+                else:
+                    conditions.append(f"{prefix}icd_code = '{code}'")
         return " OR ".join(conditions)
 
     def _procedure_code_sql_filter(self, codes, table_alias='cp'):
